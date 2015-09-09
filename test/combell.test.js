@@ -96,13 +96,11 @@ describe('Combell::listDomains()', function () {
 
     return listDomains
       .then(function (domains) {
-        expect(domains).be.an('object');
-        expect(domains).be.property('data').and.be.deep.equals([
+        expect(domains).be.an('array').and.be.deep.equals([
           {
             "name": "some-domain.com"
           }
         ]);
-        expect(domains).be.property('next').and.be.a('function');
         mockLogin.done();
         mock.done();
       });

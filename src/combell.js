@@ -62,10 +62,7 @@ Client.prototype.login = function () {
     }.bind(this));
 };
 
-Client.prototype.listDomains = function (page) {
-  if (!page) {
-    page = 0;
-  }
+Client.prototype.listDomains = function () {
   return fetch('https://my.combell.com/fr/product/dns/0///10000', {
     headers: {
       'Cookie': cookie.serialize(SESS_COOKIE_NAME, this._cookie)
@@ -76,15 +73,12 @@ Client.prototype.listDomains = function (page) {
     })
     .then(function (body) {
       var $ = cheerio.load(body);
-      return {
-        data: $('.dnsrecords').parents('li').map(function () {
-          var $domain = $(this);
-          var domain = {
-            name: $domain.find('div.data.title > p').text().trim(),
-          };
-          return domain;
-        }).toArray(),
-        next: this.listDomains.bind(this, page + 1)
-      };
+      return $('.dnsrecords').parents('li').map(function () {
+        var $domain = $(this);
+        var domain = {
+          name: $domain.find('div.data.title > p').text().trim(),
+        };
+        return domain;
+      }).toArray();
     }.bind(this));
 };
