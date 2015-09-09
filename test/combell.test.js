@@ -17,7 +17,7 @@ describe('Combell', function () {
 describe('Combell::login()', function () {
   it('Can successfully login with valid credentials', function () {
     var mock = nock('https://my.combell.com:443')
-      .post('/', "loginform=1&login=valid&pass=password")
+      .post('/', "loginform=1&login="+ credentials.valid[0] +"&pass="+ credentials.valid[1])
       .reply(200, {"state":"ok","result":{"some user removed for test": true},"message":"Actie succesvol verwerkt"}, { date: 'Tue, 08 Sep 2015 21:57:50 GMT',
       server: 'Apache',
       'set-cookie':
@@ -67,7 +67,7 @@ describe('Combell::listDomains()', function () {
   it.only('Can successfully login with valid credentials', function () {
     this.timeout(10000);
     var mockLogin = nock('https://my.combell.com:443')
-      .post('/', "loginform=1&login=valid&pass=password")
+      .post('/', "loginform=1&login="+ credentials.valid[0] +"&pass="+ credentials.valid[1])
       .reply(200, {"state":"ok","result":{"some user removed for test": true},"message":"Actie succesvol verwerkt"}, { date: 'Tue, 08 Sep 2015 21:57:50 GMT',
       server: 'Apache',
       'set-cookie':
