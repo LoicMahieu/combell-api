@@ -13,32 +13,42 @@ var credentials = {
 
 // nock.recorder.rec();
 
+
+function getLoggedClient () {
+  var mock = nock('https://my.combell.com:443')
+    .post('/fr', "loginform=1&login="+ credentials.valid[0] +"&pass="+ credentials.valid[1])
+    .reply(200, {"state":"ok","result":{"some user removed for test": true},"message":"Actie succesvol verwerkt"}, { date: 'Tue, 08 Sep 2015 21:57:50 GMT',
+    server: 'Apache',
+    'set-cookie':
+     [ 'PHPSESSID=9bb7r9i0u5k868kdah6e5r6dl1; path=/; secure; HttpOnly',
+       'PHPSESSID=5vm91da5bdmg6qpbbm34bk9v96; path=/; secure; HttpOnly' ],
+    expires: 'Thu, 19 Nov 1981 08:52:00 GMT',
+    'cache-control': 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0',
+    pragma: 'no-cache',
+    'content-length': '975',
+    connection: 'close',
+    'content-type': 'application/json' });
+
+  var client = new Combell(credentials.valid[0], credentials.valid[1]);
+  return client.login()
+    .then(function (user) {
+      expect(user).to.be.an('object');
+      expect(client.logged).to.be.equals(true);
+      // must be the latest PHPSESSID
+      expect(client._cookie).to.be.equals('5vm91da5bdmg6qpbbm34bk9v96');
+      mock.done();
+    })
+    .then(function () {
+      return client;
+    });
+}
+
+
+
 describe('Combell', function () {
 describe('Combell::login()', function () {
   it('Can successfully login with valid credentials', function () {
-    var mock = nock('https://my.combell.com:443')
-      .post('/fr', "loginform=1&login="+ credentials.valid[0] +"&pass="+ credentials.valid[1])
-      .reply(200, {"state":"ok","result":{"some user removed for test": true},"message":"Actie succesvol verwerkt"}, { date: 'Tue, 08 Sep 2015 21:57:50 GMT',
-      server: 'Apache',
-      'set-cookie':
-       [ 'PHPSESSID=9bb7r9i0u5k868kdah6e5r6dl1; path=/; secure; HttpOnly',
-         'PHPSESSID=5vm91da5bdmg6qpbbm34bk9v96; path=/; secure; HttpOnly' ],
-      expires: 'Thu, 19 Nov 1981 08:52:00 GMT',
-      'cache-control': 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0',
-      pragma: 'no-cache',
-      'content-length': '975',
-      connection: 'close',
-      'content-type': 'application/json' });
-
-    var client = new Combell(credentials.valid[0], credentials.valid[1]);
-    return client.login()
-      .then(function (user) {
-        expect(user).to.be.an('object');
-        expect(client.logged).to.be.equals(true);
-        // must be the latest PHPSESSID
-        expect(client._cookie).to.be.equals('5vm91da5bdmg6qpbbm34bk9v96');
-        mock.done();
-      });
+    return getLoggedClient();
   });
   it('Can not login with invalid credentials', function () {
     var mock = nock('https://my.combell.com:443')
@@ -66,19 +76,6 @@ describe('Combell::login()', function () {
 describe('Combell::listDomains()', function () {
   it('Can list all domains', function () {
     this.timeout(10000);
-    var mockLogin = nock('https://my.combell.com:443')
-      .post('/fr', "loginform=1&login="+ credentials.valid[0] +"&pass="+ credentials.valid[1])
-      .reply(200, {"state":"ok","result":{"some user removed for test": true},"message":"Actie succesvol verwerkt"}, { date: 'Tue, 08 Sep 2015 21:57:50 GMT',
-      server: 'Apache',
-      'set-cookie':
-       [ 'PHPSESSID=9bb7r9i0u5k868kdah6e5r6dl1; path=/; secure; HttpOnly',
-         'PHPSESSID=5vm91da5bdmg6qpbbm34bk9v96; path=/; secure; HttpOnly' ],
-      expires: 'Thu, 19 Nov 1981 08:52:00 GMT',
-      'cache-control': 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0',
-      pragma: 'no-cache',
-      'content-length': '975',
-      connection: 'close',
-      'content-type': 'application/json' });
 
     var mock = nock('https://my.combell.com:443')
       .get('/fr/product/dns/0///10000')
@@ -91,10 +88,10 @@ describe('Combell::listDomains()', function () {
       'transfer-encoding': 'chunked',
       'content-type': 'text/html; charset=UTF-8' });
 
-    var client = new Combell(credentials.valid[0], credentials.valid[1]);
-    var listDomains = client.login().then(client.listDomains.bind(client, 0));
-
-    return listDomains
+    return getLoggedClient()
+      .then(function (client) {
+        return client.listDomains();
+      })
       .then(function (domains) {
         expect(domains).be.an('array').and.be.deep.equals([
           {
@@ -102,7 +99,6 @@ describe('Combell::listDomains()', function () {
             "name": "some-domain.com"
           }
         ]);
-        mockLogin.done();
         mock.done();
       });
   });
@@ -111,22 +107,9 @@ describe('Combell::listDomains()', function () {
 describe('Combell::listCNAME()', function () {
   it('Can list CNAME records for a domain', function () {
     this.timeout(10000);
-    var mockLogin = nock('https://my.combell.com:443')
-      .post('/fr', "loginform=1&login="+ credentials.valid[0] +"&pass="+ credentials.valid[1])
-      .reply(200, {"state":"ok","result":{"some user removed for test": true},"message":"Actie succesvol verwerkt"}, { date: 'Tue, 08 Sep 2015 21:57:50 GMT',
-      server: 'Apache',
-      'set-cookie':
-       [ 'PHPSESSID=9bb7r9i0u5k868kdah6e5r6dl1; path=/; secure; HttpOnly',
-         'PHPSESSID=5vm91da5bdmg6qpbbm34bk9v96; path=/; secure; HttpOnly' ],
-      expires: 'Thu, 19 Nov 1981 08:52:00 GMT',
-      'cache-control': 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0',
-      pragma: 'no-cache',
-      'content-length': '975',
-      connection: 'close',
-      'content-type': 'application/json' });
 
     var mock = nock('https://my.combell.com:443')
-      .get('/fr/product/dns/record/cname/igloo_be/1///1000')
+      .get('/fr/product/dns/record/cname/some_domain_com/1///1000')
       .reply(200, fs.readFileSync(__dirname + '/fixtures/list-cnames.html').toString(), { date: 'Tue, 08 Sep 2015 22:11:27 GMT',
       server: 'Apache',
       expires: 'Thu, 19 Nov 1981 08:52:00 GMT',
@@ -136,10 +119,10 @@ describe('Combell::listCNAME()', function () {
       'transfer-encoding': 'chunked',
       'content-type': 'text/html; charset=UTF-8' });
 
-    var client = new Combell(credentials.valid[0], credentials.valid[1]);
-    var listCNAME = client.login().then(client.listCNAME.bind(client, 'igloo_be'));
-
-    return listCNAME
+    return getLoggedClient()
+      .then(function (client) {
+        return client.listCNAME('some_domain_com');
+      })
       .then(function (cnames) {
         expect(cnames).be.an('array').and.be.deep.equals([
           {
@@ -148,7 +131,6 @@ describe('Combell::listCNAME()', function () {
             "ttl": 3600
           }
         ]);
-        mockLogin.done();
         mock.done();
       });
   });
@@ -157,22 +139,8 @@ describe('Combell::listCNAME()', function () {
 describe('Combell::listA()', function () {
   it('Can list A records for a domain', function () {
     this.timeout(10000);
-    var mockLogin = nock('https://my.combell.com:443')
-      .post('/fr', "loginform=1&login="+ credentials.valid[0] +"&pass="+ credentials.valid[1])
-      .reply(200, {"state":"ok","result":{"some user removed for test": true},"message":"Actie succesvol verwerkt"}, { date: 'Tue, 08 Sep 2015 21:57:50 GMT',
-      server: 'Apache',
-      'set-cookie':
-       [ 'PHPSESSID=9bb7r9i0u5k868kdah6e5r6dl1; path=/; secure; HttpOnly',
-         'PHPSESSID=5vm91da5bdmg6qpbbm34bk9v96; path=/; secure; HttpOnly' ],
-      expires: 'Thu, 19 Nov 1981 08:52:00 GMT',
-      'cache-control': 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0',
-      pragma: 'no-cache',
-      'content-length': '975',
-      connection: 'close',
-      'content-type': 'application/json' });
-
     var mock = nock('https://my.combell.com:443')
-      .get('/fr/product/dns/record/a/igloo_be/1///1000')
+      .get('/fr/product/dns/record/a/some_domain_com/1///1000')
       .reply(200, fs.readFileSync(__dirname + '/fixtures/list-a.html').toString(), { date: 'Tue, 08 Sep 2015 22:11:27 GMT',
       server: 'Apache',
       expires: 'Thu, 19 Nov 1981 08:52:00 GMT',
@@ -182,10 +150,10 @@ describe('Combell::listA()', function () {
       'transfer-encoding': 'chunked',
       'content-type': 'text/html; charset=UTF-8' });
 
-    var client = new Combell(credentials.valid[0], credentials.valid[1]);
-    var listA = client.login().then(client.listA.bind(client, 'igloo_be'));
-
-    return listA
+    return getLoggedClient()
+      .then(function (client) {
+        return client.listA('some_domain_com');
+      })
       .then(function (cnames) {
         expect(cnames).be.an('array').and.be.deep.equals([
           {
@@ -194,7 +162,6 @@ describe('Combell::listA()', function () {
             "ttl": 3600
           }
         ]);
-        mockLogin.done();
         mock.done();
       });
   });
