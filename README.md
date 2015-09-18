@@ -21,3 +21,4 @@ client
 - `login`
 - `listDomains`
 - `listCNAME`
+- `listA`

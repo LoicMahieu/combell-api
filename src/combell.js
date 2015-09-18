@@ -113,3 +113,28 @@ Client.prototype.listCNAME = function (domain) {
       }).toArray();
     }.bind(this));
 };
+
+Client.prototype.listA = function (domain) {
+  var url = this._apiBase + '/product/dns/record/a/' + domain + '/1///1000';
+
+  return fetch(url, {
+    headers: {
+      'Cookie': cookie.serialize(SESS_COOKIE_NAME, this._cookie)
+    }
+  })
+    .then(function (res) {
+      return res.text();
+    })
+    .then(function (body) {
+      var $ = cheerio.load(body);
+      return $('ul.settings > li:not(.edit_row.table_form, .add_row, .dataheader)').map(function () {
+        var $row = $(this);
+        var row = {
+          record: $row.find('div.data').eq(0).text().trim(),
+          dest: $row.find('div.data').eq(1).text().trim(),
+          ttl: parseInt($row.find('div.data').eq(2).text())
+        };
+        return row;
+      }).toArray();
+    }.bind(this));
+};
