@@ -101,16 +101,7 @@ Client.prototype.listCNAME = function (domain) {
       return res.text();
     })
     .then(function (body) {
-      var $ = cheerio.load(body);
-      return $('ul.settings > li:not(.edit_row.table_form, .add_row, .dataheader)').map(function () {
-        var $row = $(this);
-        var row = {
-          record: $row.find('div.data').eq(0).text().trim(),
-          dest: $row.find('div.data').eq(1).text().trim(),
-          ttl: parseInt($row.find('div.data').eq(2).text())
-        };
-        return row;
-      }).toArray();
+      return parseRecordList(cheerio.load(body));
     }.bind(this));
 };
 
@@ -126,15 +117,18 @@ Client.prototype.listA = function (domain) {
       return res.text();
     })
     .then(function (body) {
-      var $ = cheerio.load(body);
-      return $('ul.settings > li:not(.edit_row.table_form, .add_row, .dataheader)').map(function () {
-        var $row = $(this);
-        var row = {
-          record: $row.find('div.data').eq(0).text().trim(),
-          dest: $row.find('div.data').eq(1).text().trim(),
-          ttl: parseInt($row.find('div.data').eq(2).text())
-        };
-        return row;
-      }).toArray();
+      return parseRecordList(cheerio.load(body));
     }.bind(this));
 };
+
+function parseRecordList ($) {
+  return $('ul.settings > li:not(.edit_row.table_form, .add_row, .dataheader)').map(function () {
+    var $row = $(this);
+    var row = {
+      record: $row.find('div.data').eq(0).text().trim(),
+      dest: $row.find('div.data').eq(1).text().trim(),
+      ttl: parseInt($row.find('div.data').eq(2).text())
+    };
+    return row;
+  }).toArray();
+}
