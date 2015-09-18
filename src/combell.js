@@ -15,11 +15,12 @@ function Client (login, password) {
   this.logged = false;
   this._user = null;
   this._cookie = null;
+  this._apiBase = 'https://my.combell.com/fr';
 }
 
 Client.prototype.login = function () {
   debug('Begin login request');
-  return fetch('https://my.combell.com', {
+  return fetch(this._apiBase, {
     method: 'post',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded'
@@ -63,7 +64,7 @@ Client.prototype.login = function () {
 };
 
 Client.prototype.listDomains = function () {
-  return fetch('https://my.combell.com/fr/product/dns/0///10000', {
+  return fetch(this._apiBase + '/product/dns/0///10000', {
     headers: {
       'Cookie': cookie.serialize(SESS_COOKIE_NAME, this._cookie)
     }
@@ -75,10 +76,40 @@ Client.prototype.listDomains = function () {
       var $ = cheerio.load(body);
       return $('.dnsrecords').parents('li').map(function () {
         var $domain = $(this);
+        var id = $domain
+          .find('a[href^="/fr/product/dns/record/fwd"]')
+          .attr('href')
+          .match(/\/([a-zA-Z0-9%_-]+)$/);
         var domain = {
-          name: $domain.find('div.data.title > p').text().trim(),
+          id: id ? id[1] : '',
+          name: $domain.find('div.data.title > p').text().trim()
         };
         return domain;
+      }).toArray();
+    }.bind(this));
+};
+
+Client.prototype.listCNAME = function (domain) {
+  var url = this._apiBase + '/product/dns/record/cname/' + domain + '/1///1000';
+
+  return fetch(url, {
+    headers: {
+      'Cookie': cookie.serialize(SESS_COOKIE_NAME, this._cookie)
+    }
+  })
+    .then(function (res) {
+      return res.text();
+    })
+    .then(function (body) {
+      var $ = cheerio.load(body);
+      return $('ul.settings > li:not(.edit_row.table_form, .add_row, .dataheader)').map(function () {
+        var $row = $(this);
+        var row = {
+          record: $row.find('div.data').eq(0).text().trim(),
+          dest: $row.find('div.data').eq(1).text().trim(),
+          ttl: parseInt($row.find('div.data').eq(2).text())
+        };
+        return row;
       }).toArray();
     }.bind(this));
 };
