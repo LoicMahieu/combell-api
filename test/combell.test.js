@@ -40,7 +40,7 @@ describe('Combell::login()', function () {
         mock.done();
       });
   });
-  it('Can successfully login with valid credentials', function () {
+  it('Can not login with invalid credentials', function () {
     var mock = nock('https://my.combell.com:443')
       .post('/fr', "loginform=1&login=aa&pass=bb")
       .reply(200, {"state":"error","message":"Er is een fout opgetreden","info":{"IsEmpty":true,"IsSuccessfull":false,"FaultType":"UAC_InvalidUserCredentialsFault","FaultMessage":"Met de ingegeven gebruikersnaam aa kan op dit moment niet ingelogd worden. Ofwel is deze gebruiker onbestaande of inactief, ofwel is het ingegeven wachtwoord foutief."}}, { date: 'Tue, 08 Sep 2015 21:59:24 GMT',
@@ -64,7 +64,7 @@ describe('Combell::login()', function () {
 });
 
 describe('Combell::listDomains()', function () {
-  it('Can successfully login with valid credentials', function () {
+  it('Can list all domains', function () {
     this.timeout(10000);
     var mockLogin = nock('https://my.combell.com:443')
       .post('/fr', "loginform=1&login="+ credentials.valid[0] +"&pass="+ credentials.valid[1])
@@ -109,7 +109,7 @@ describe('Combell::listDomains()', function () {
 });
 
 describe('Combell::listCNAME()', function () {
-  it('Can successfully login with valid credentials', function () {
+  it('Can list CNAME records for a domain', function () {
     this.timeout(10000);
     var mockLogin = nock('https://my.combell.com:443')
       .post('/fr', "loginform=1&login="+ credentials.valid[0] +"&pass="+ credentials.valid[1])
@@ -155,7 +155,7 @@ describe('Combell::listCNAME()', function () {
 });
 
 describe('Combell::listA()', function () {
-  it('Can successfully login with valid credentials', function () {
+  it('Can list A records for a domain', function () {
     this.timeout(10000);
     var mockLogin = nock('https://my.combell.com:443')
       .post('/fr', "loginform=1&login="+ credentials.valid[0] +"&pass="+ credentials.valid[1])
