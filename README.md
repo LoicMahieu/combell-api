@@ -1,6 +1,8 @@
 
 # combell-api
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/LoicMahieu/combell-api.svg)](https://greenkeeper.io/)
+
 ## Example
 
 ```
