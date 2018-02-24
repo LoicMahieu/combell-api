@@ -21,6 +21,6 @@
     "chai-as-promised": "^6.0.0",
     "cheerio": "^1.0.0-rc.2",
     "mocha": "^3.4.2",
-    "nock": "^9.0.2"
+    "nock": "^9.2.0"
   }
 }
